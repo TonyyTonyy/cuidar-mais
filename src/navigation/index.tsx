@@ -12,7 +12,7 @@ import { Settings } from "./screens/Settings";
 import { NotFound } from "./screens/NotFound";
 import LoginScreen from "./screens/Login";
 import DashboardScreen from "@/src/navigation/screens/Dashboard"
-import MedicinesScreen from "@/src/navigation/screens/Medicine"
+import MedicineScreen from "@/src/navigation/screens/Medicine"
 import FamilyScreen from "@/src/navigation/screens/Family"
 
 const DashboardTabs = createBottomTabNavigator({
@@ -27,7 +27,7 @@ const DashboardTabs = createBottomTabNavigator({
       },
     },
     Medicines: {
-      screen: MedicinesScreen,
+      screen: MedicineScreen,
       options: {
         title: "Medicamentos",
         tabBarIcon: ({ color, size }) => (

@@ -66,7 +66,7 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 items-center justify-center bg-white">
-      <View className="p-4 border-b bg-white w-full max-w-md">
+      <View className="p-4 border-b bg-white w-full max-w-lg">
         <View className="flex-row items-center justify-between">
           <Text className="text-[22px] font-bold text-[#333]">
             {mockUser.greeting}, {mockUser.name}!
@@ -115,7 +115,7 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="p-4 w-full max-w-md">
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="p-4 w-full max-w-lg">
         <Card className="p-4 mb-4 bg-gray-100 rounded-xl">
           <View className="items-center mb-4">
             <Text className="text-base font-semibold text-[#333]">Próximo remédio em...</Text>
@@ -132,7 +132,7 @@ export default function DashboardScreen() {
 
           {nextMedicine.status === "pending" && (
             <View className="mt-4">
-              <Button onPress={() => handleTakeMedicine(nextMedicine.id)} className="bg-[#5FD068] p-3 rounded-lg">
+              <Button onPress={() => handleTakeMedicine(nextMedicine.id)} className="bg-[#5FD068] hover:bg-[#5FD068] hover:opacity-80 p-3 rounded-lg">
                 <View className="flex-row items-center justify-center">
                   <Ionicons name="checkmark-circle" size={18} color="white" />
                   <Text className="text-white font-bold ml-2">Tomar Agora</Text>
