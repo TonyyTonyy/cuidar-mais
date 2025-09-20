@@ -40,7 +40,7 @@ export default function LoginScreen() {
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
       if (navigation && typeof navigation.navigate === 'function') {
-        navigation.replace("Dashboard")
+        navigation.replace("Home")
       } else {
         Alert.alert('Sucesso', 'Login simulado com sucesso — redirecionando para dashboard')
       }

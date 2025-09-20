@@ -5,47 +5,48 @@ import {
   StaticParamList,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Image } from "react-native";
-
-import bell from "../assets/bell.png";
-import newspaper from "../assets/newspaper.png";
+import { Ionicons } from "@expo/vector-icons"
 
 import { Profile } from "./screens/Profile";
 import { Settings } from "./screens/Settings";
-import { Updates } from "./screens/Updates";
 import { NotFound } from "./screens/NotFound";
 import LoginScreen from "./screens/Login";
-import DashboardScreen from "./screens/Dashboard";
+import DashboardScreen from "@/src/navigation/screens/Dashboard"
+import MedicinesScreen from "@/src/navigation/screens/Medicine"
+import FamilyScreen from "@/src/navigation/screens/Family"
 
 const DashboardTabs = createBottomTabNavigator({
   screens: {
-    Home: {
+    Dashboard: {
       screen: DashboardScreen,
       options: {
         title: "Dashboard",
         tabBarIcon: ({ color, size }) => (
-          <Image
-            source={newspaper}
-            tintColor={color}
-            style={{ width: size, height: size }}
-          />
+          <Ionicons name="home-outline" className="-mb-[2px]" size={18} color={color} />
         ),
       },
     },
-    Updates: {
-      screen: Updates,
+    Medicines: {
+      screen: MedicinesScreen,
       options: {
+        title: "Medicamentos",
         tabBarIcon: ({ color, size }) => (
-          <Image
-            source={bell}
-            tintColor={color}
-            style={{ width: size, height: size }}
-          />
+          <Ionicons name="medkit-outline" className="-mb-[3px]" size={18} color={color} />
+        ),
+      },
+    },
+    Family: {
+      screen: FamilyScreen,
+      options: {
+        title: "Família",
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="people-outline" className="-mb-[3px]" size={18} color={color} />
         ),
       },
     },
   },
-});
+})
+
 
 const RootStack = createNativeStackNavigator({
   initialRouteName: "Login",
@@ -56,7 +57,7 @@ const RootStack = createNativeStackNavigator({
         headerShown: false, 
       },
     },
-    Dashboard: {
+    Home: {
       screen: DashboardTabs,
       options: {
         headerShown: false,

@@ -10,7 +10,7 @@ export function NotFound() {
   return (
     <View style={styles.container}>
       <Text>404</Text>
-      <Button onPress={() => navigation.navigate('Dashboard')}>
+      <Button onPress={() => navigation.navigate('Home')}>
         Ir para o Dashboard
       </Button>
     </View>
