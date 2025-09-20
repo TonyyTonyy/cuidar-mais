@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, ActivityIndicator, Alert, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { Card } from '@/components/ui/card'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from '..'
+import logo from "@/assets/LogoCuidar.png";
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(true)
@@ -52,11 +53,12 @@ export default function LoginScreen() {
   return (
     <SafeAreaView className="flex-1 items-center justify-center bg-white px-6">
       <View className="w-full max-w-md">
-        <View className="items-center mb-6">
-          <View className="w-24 h-24 rounded-full items-center justify-center mb-4 bg-blue-400">
-            <Ionicons name="medkit" size={36} color="#fff" />
-          </View>
-          <Text className="text-3xl font-bold text-gray-800">Cuidar+</Text>
+        <View className="items-center mb-6 relative">
+          <Image
+            source={logo}
+            style={{ height: 150 }}
+            resizeMode="contain"
+          />
           <Text className="text-base text-gray-500">Seus medicamentos na hora certa</Text>
         </View>
 
