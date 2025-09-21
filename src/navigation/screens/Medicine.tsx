@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { Ionicons } from "@expo/vector-icons"
-import { ActivityIndicator, Alert, StatusBar, View } from "react-native"
+import { ActivityIndicator, Alert, ScrollView, StatusBar, View } from "react-native"
 import * as Speech from "expo-speech"
 import { VStack } from "@/components/ui/vstack"
 import { Box } from "@/components/ui/box"
@@ -9,12 +8,11 @@ import { Input, InputField } from "@/components/ui/input"
 import { Button, ButtonText } from "@/components/ui/button"
 import { HStack } from "@/components/ui/hstack"
 import { Textarea, TextareaInput } from "@/components/ui/textarea"
-import { SafeAreaView } from "react-native-safe-area-context"
-import { ScrollView } from "react-native-gesture-handler"
 import { Card } from "@/components/ui/card"
 import { useNavigation } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { RootStackParamList } from ".."
+import { Ionicons } from "@expo/vector-icons"
 
 interface MedicineForm {
     name: string
@@ -554,12 +552,11 @@ export default function MedicineScreen() {
                                             />
                                         </Input>
                                         <Button
-                                            className="h-12 w-12"
-                                            variant="outline"
+                                            className="p-0 h-12 w-12 text-red-500 bg-transparent border border-red-500"
                                             onPress={() => removeTime(index)}
                                             style={{ borderColor: "#FF6B6B" }}
                                         >
-                                            <ButtonText style={{ color: "#FF6B6B" }}>×</ButtonText>
+                                            <Ionicons name="close" size={20} color="#FF6B6B" />
                                         </Button>
                                     </HStack>
                                 ))}
@@ -706,95 +703,94 @@ export default function MedicineScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1 w-full max-w-lg self-center" style={{ backgroundColor: "#FFFFFF" }}>
-            <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-            <Box className="p-4 border-b" style={{ backgroundColor: "#FFFFFF" }}>
-                <HStack className="items-center justify-between">
-                    <Text className="text-xl font-bold" style={{ color: "#333333" }}>
-                        Adicionar Medicamento
-                    </Text>
-                    <Box className="w-12" />
-                </HStack>
-
-                <VStack space="xs" className="mt-4">
-                    <HStack className="justify-between">
-                        <Text className="text-sm text-gray-500">
-                            Passo {currentStep + 1} de {steps.length}
+            <View className="flex-1 w-full max-w-lg self-center p-4">
+                <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+                <Box className="p-4 border-b-2 border-[#cdcdcd] bg-white" style={{ elevation: 3 }}>
+                    <HStack className="items-center justify-between">
+                        <Text className="text-xl font-bold" style={{ color: "#333333" }}>
+                            Adicionar Medicamento
                         </Text>
-                        <Text className="text-sm text-gray-500">
-                            {Math.round(((currentStep + 1) / steps.length) * 100)}%
-                        </Text>
+                        <Box className="w-12" />
                     </HStack>
-                    <Box className="w-full bg-gray-200 rounded-full h-2">
-                        <Box
-                            className="h-2 rounded-full"
-                            style={{
-                                backgroundColor: "#4DA6FF",
-                                width: `${((currentStep + 1) / steps.length) * 100}%`,
-                            }}
-                        />
-                    </Box>
-                </VStack>
-            </Box>
 
-            <ScrollView className="flex-1">
-                <Box className="p-6">
-                    <Card className="p-0" style={{ backgroundColor: "#F5F5F5" }}>
-                        {renderStep()}
-                    </Card>
+                    <VStack space="xs" className="mt-4">
+                        <HStack className="justify-between">
+                            <Text className="text-sm text-gray-500">
+                                Passo {currentStep + 1} de {steps.length}
+                            </Text>
+                            <Text className="text-sm text-gray-500">
+                                {Math.round(((currentStep + 1) / steps.length) * 100)}%
+                            </Text>
+                        </HStack>
+                        <Box className="w-full bg-gray-200 rounded-full h-2">
+                            <Box
+                                className="h-2 rounded-full"
+                                style={{
+                                    backgroundColor: "#4DA6FF",
+                                    width: `${((currentStep + 1) / steps.length) * 100}%`,
+                                }}
+                            />
+                        </Box>
+                    </VStack>
                 </Box>
-            </ScrollView>
 
-            <Box className="p-4 border-t" style={{ backgroundColor: "#FFFFFF" }}>
-                <HStack space="md">
-                    {currentStep > 0 && (
-                        <Button
-                            className="flex-1 h-14"
-                            variant="outline"
-                            onPress={handlePrevious}
-                            style={{ borderColor: "#4DA6FF" }}
-                        >
-                            <Ionicons name="arrow-back" size={20} color="#4DA6FF" />
-                            <ButtonText className="ml-2 text-lg" style={{ color: "#4DA6FF" }}>
-                                Voltar
-                            </ButtonText>
-                        </Button>
-                    )}
+                <ScrollView className="flex-1">
+                    <Box className="py-6 items-center justify-center">
+                        <Card className="p-0 w-full bg-white" style={{ elevation: 3 }}>
+                            {renderStep()}
+                        </Card>
+                    </Box>
+                </ScrollView>
 
-                    {currentStep < steps.length - 1 ? (
-                        <Button
-                            className="flex-1 h-14"
-                            variant="solid"
-                            onPress={handleNext}
-                            isDisabled={!canProceed}
-                            style={{ backgroundColor: canProceed ? "#4DA6FF" : "#ccc" }}
-                        >
-                            <ButtonText className="text-lg text-white">Próximo</ButtonText>
-                            <Ionicons name="arrow-forward" size={20} color="white" />
-                        </Button>
-                    ) : (
-                        <Button
-                            className="flex-1 h-14"
-                            variant="solid"
-                            onPress={handleSubmit}
-                            isDisabled={isSubmitting}
-                            style={{ backgroundColor: "#5FD068" }}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <ActivityIndicator size="small" color="white" />
-                                    <ButtonText className="ml-2 text-lg text-white">Salvando...</ButtonText>
-                                </>
-                            ) : (
-                                <>
-                                    <Ionicons name="checkmark" size={20} color="white" />
-                                    <ButtonText className="ml-2 text-base text-white">Salvar Medicamento</ButtonText>
-                                </>
-                            )}
-                        </Button>
-                    )}
-                </HStack>
-            </Box>
-        </SafeAreaView>
+                <View className="p-4 bg-white rounded-md" style={{ elevation: 3 }}>
+                    <HStack space="md">
+                        {currentStep > 0 && (
+                            <Button
+                                className="flex-1 h-14 max-w-[130px]"
+                                variant="outline"
+                                onPress={handlePrevious}
+                                style={{ borderColor: "#4DA6FF" }}
+                            >
+                                <Ionicons name="arrow-back" size={20} color="#4DA6FF" />
+                                <ButtonText className="ml-2 text-lg" style={{ color: "#4DA6FF" }}>
+                                    Voltar
+                                </ButtonText>
+                            </Button>
+                        )}
+
+                        {currentStep < steps.length - 1 ? (
+                            <Button
+                                className="flex-1 h-14"
+                                variant="solid"
+                                onPress={handleNext}
+                                isDisabled={!canProceed}
+                                style={{ backgroundColor: canProceed ? "#4DA6FF" : "#ccc" }}
+                            >
+                                <ButtonText className="text-lg text-white">Próximo</ButtonText>
+                                <Ionicons name="arrow-forward" size={20} color="white" />
+                            </Button>
+                        ) : (
+                            <Button
+                                className="flex-1 h-14 bg-emerald-500"
+                                variant="solid"
+                                onPress={handleSubmit}
+                                isDisabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <ActivityIndicator size="small" color="white" />
+                                        <ButtonText className="ml-2 text-lg text-white">Salvando...</ButtonText>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Ionicons name="checkmark" size={20} color="white" />
+                                        <ButtonText className="ml-2 text-base text-white">Salvar Medicamento</ButtonText>
+                                    </>
+                                )}
+                            </Button>
+                        )}
+                    </HStack>
+                </View>
+            </View>
     )
 }

@@ -3,6 +3,7 @@ export type Medicine = {
   name: string
   dosage: string
   time: string
+  color: string
   nextIn: number
   notes: string
   status: "pending" | "taken" | "overdue"

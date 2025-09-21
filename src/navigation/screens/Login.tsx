@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, ActivityIndicator, Alert, Image } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -51,7 +50,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center bg-white px-6">
+    <View className="flex-1 items-center justify-center bg-white px-6">
       <View className="w-full max-w-md">
         <View className="items-center mb-6 relative">
           <Image
@@ -93,13 +92,13 @@ export default function LoginScreen() {
               </View>
             ) : null}
 
-            <Text className="text-sm text-center text-gray-500 px-2">
+            <Text className="text-sm text-center mt-2 text-gray-500 px-2">
               Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade. Seus dados de
               saúde são protegidos e nunca compartilhados.
             </Text>
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
