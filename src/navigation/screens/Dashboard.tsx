@@ -20,13 +20,6 @@ const mockMedicines: Medicine[] = [
   { id: 4, name: "Vitamina D", dosage: "2000 UI - 1 cápsula", time: "08:00", nextIn: 0, notes: "Com o café da manhã", status: "taken", color: "#10B981" },
 ]
 
-const motivationalMessages = [
-  "Você está indo muito bem! 💪",
-  "Cuidar da saúde é um ato de amor próprio 💚",
-  "Cada dia é uma vitória! 🎉",
-  "Continue assim, você é incrível! ⭐"
-]
-
 export default function DashboardScreen() {
   const [medicines, setMedicines] = useState<Medicine[]>(mockMedicines)
   const [showSettings, setShowSettings] = useState(false)
@@ -85,15 +78,6 @@ export default function DashboardScreen() {
     if (hour < 18) return "Boa tarde"
     return "Boa noite"
   }
-
-  const getGreetingEmoji = () => {
-    const hour = currentTime.getHours()
-    if (hour < 12) return "🌅"
-    if (hour < 18) return "☀️"
-    return "🌙"
-  }
-
-  const randomMotivation = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]
 
   return (
     <View className="flex-1">

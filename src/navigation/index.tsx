@@ -13,7 +13,7 @@ import { NotFound } from "./screens/NotFound";
 import LoginScreen from "./screens/Login";
 import DashboardScreen from "@/src/navigation/screens/Dashboard"
 import MedicineScreen from "@/src/navigation/screens/Medicine"
-import FamilyScreen from "@/src/navigation/screens/Family"
+import FamilyScreen from "@/src/navigation/screens/family"
 
 const DashboardTabs = createBottomTabNavigator({
   screens: {
