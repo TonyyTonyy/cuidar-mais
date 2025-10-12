@@ -20,7 +20,7 @@ const DashboardTabs = createBottomTabNavigator({
     Dashboard: {
       screen: DashboardScreen,
       options: {
-        title: "Dashboard",
+        title: "Inicio",
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="home-outline" className="-mb-[2px]" size={18} color={color} />
         ),

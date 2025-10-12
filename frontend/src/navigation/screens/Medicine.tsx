@@ -13,6 +13,9 @@ import { useNavigation } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { RootStackParamList } from ".."
 import { Ionicons } from "@expo/vector-icons"
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000'
 
 interface MedicineForm {
     name: string
@@ -130,7 +133,6 @@ export default function MedicineScreen() {
         return true
     }
 
-    // Validação de formato de horário (HH:MM)
     const isValidTimeFormat = (time: string): boolean => {
         const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/
         return timeRegex.test(time)
@@ -138,7 +140,6 @@ export default function MedicineScreen() {
 
     const validateTimes = (): boolean => {
         if (form.frequency === "hours") {
-            // Para frequência em horas, só precisa validar o primeiro horário
             if (form.times.length === 0 || !form.times[0]) {
                 addFieldError('times', 'Primeiro horário é obrigatório')
                 return false
@@ -223,7 +224,21 @@ export default function MedicineScreen() {
         }
     }
 
+    const getStoredToken = async () => {
+        try {
+            const keysToTry = ['token', 'authToken', 'accessToken']
+            for (const key of keysToTry) {
+                const t = await AsyncStorage.getItem(key)
+                if (t) return t
+            }
+            return null
+        } catch (e) {
+            return null
+        }
+    }
+
     const handleSubmit = async () => {
+        // Valida todos os campos
         const isNameValid = validateMedicineName(form.name)
         const isDosageValid = validateDosage(form.dosage)
         const isFrequencyValid = validateFrequency()
@@ -239,8 +254,41 @@ export default function MedicineScreen() {
         setIsSubmitting(true)
 
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1500))
+            const token = await getStoredToken()
 
+            if (!token) {
+                Alert.alert("Erro", "Você precisa estar logado para cadastrar medicamentos")
+                setIsSubmitting(false)
+                return
+            }
+
+            // Envia para o backend
+            const response = await fetch(`${API_URL}/api/medications`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: form.name.trim(),
+                    dosage: form.dosage.trim(),
+                    frequency: form.frequency,
+                    frequencyValue: form.frequencyValue,
+                    times: form.times,
+                    days: form.days,
+                    duration: form.duration,
+                    durationDays: form.durationDays,
+                    notes: form.notes.trim(),
+                }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erro ao cadastrar medicamento')
+            }
+
+            // Feedback de voz
             try {
                 Speech.speak("Medicamento cadastrado com sucesso", {
                     language: "pt-BR",
@@ -249,15 +297,28 @@ export default function MedicineScreen() {
                 console.log("Speech not available:", error)
             }
 
-            Alert.alert("Sucesso", "Medicamento cadastrado com sucesso!", [
-                {
-                    text: "OK",
-                    onPress: () => navigation.navigate("Home"),
-                },
-            ])
+            Alert.alert(
+                "Sucesso",
+                "Medicamento cadastrado com sucesso!",
+                [
+                    {
+                        text: "OK",
+                        onPress: () => {
+                            // Limpa o formulário
+                            setForm(initialForm)
+                            setCurrentStep(0)
+                            // Navega para a home
+                            navigation.navigate("Home")
+                        },
+                    },
+                ]
+            )
         } catch (error) {
             console.error("Erro ao salvar medicamento:", error)
-            Alert.alert("Erro", "Ocorreu um erro ao salvar o medicamento. Tente novamente.")
+            Alert.alert(
+                "Erro",
+                error instanceof Error ? error.message : "Ocorreu um erro ao salvar o medicamento. Tente novamente."
+            )
         } finally {
             setIsSubmitting(false)
         }
@@ -703,94 +764,94 @@ export default function MedicineScreen() {
     }
 
     return (
-            <View className="flex-1 w-full max-w-lg self-center p-4">
-                <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-                <Box className="p-4 border-b-2 border-[#cdcdcd] bg-white" style={{ elevation: 3 }}>
-                    <HStack className="items-center justify-between">
-                        <Text className="text-xl font-bold" style={{ color: "#333333" }}>
-                            Adicionar Medicamento
+        <View className="flex-1 w-full max-w-lg self-center p-4">
+            <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+            <Box className="p-4 border-b-2 border-[#cdcdcd] bg-white" style={{ elevation: 3 }}>
+                <HStack className="items-center justify-between">
+                    <Text className="text-xl font-bold" style={{ color: "#333333" }}>
+                        Adicionar Medicamento
+                    </Text>
+                    <Box className="w-12" />
+                </HStack>
+
+                <VStack space="xs" className="mt-4">
+                    <HStack className="justify-between">
+                        <Text className="text-sm text-gray-500">
+                            Passo {currentStep + 1} de {steps.length}
                         </Text>
-                        <Box className="w-12" />
+                        <Text className="text-sm text-gray-500">
+                            {Math.round(((currentStep + 1) / steps.length) * 100)}%
+                        </Text>
                     </HStack>
-
-                    <VStack space="xs" className="mt-4">
-                        <HStack className="justify-between">
-                            <Text className="text-sm text-gray-500">
-                                Passo {currentStep + 1} de {steps.length}
-                            </Text>
-                            <Text className="text-sm text-gray-500">
-                                {Math.round(((currentStep + 1) / steps.length) * 100)}%
-                            </Text>
-                        </HStack>
-                        <Box className="w-full bg-gray-200 rounded-full h-2">
-                            <Box
-                                className="h-2 rounded-full"
-                                style={{
-                                    backgroundColor: "#4DA6FF",
-                                    width: `${((currentStep + 1) / steps.length) * 100}%`,
-                                }}
-                            />
-                        </Box>
-                    </VStack>
-                </Box>
-
-                <ScrollView className="flex-1">
-                    <Box className="py-6 items-center justify-center">
-                        <Card className="p-0 w-full bg-white" style={{ elevation: 3 }}>
-                            {renderStep()}
-                        </Card>
+                    <Box className="w-full bg-gray-200 rounded-full h-2">
+                        <Box
+                            className="h-2 rounded-full"
+                            style={{
+                                backgroundColor: "#4DA6FF",
+                                width: `${((currentStep + 1) / steps.length) * 100}%`,
+                            }}
+                        />
                     </Box>
-                </ScrollView>
+                </VStack>
+            </Box>
 
-                <View className="p-4 bg-white rounded-md" style={{ elevation: 3 }}>
-                    <HStack space="md">
-                        {currentStep > 0 && (
-                            <Button
-                                className="flex-1 h-14 max-w-[130px]"
-                                variant="outline"
-                                onPress={handlePrevious}
-                                style={{ borderColor: "#4DA6FF" }}
-                            >
-                                <Ionicons name="arrow-back" size={20} color="#4DA6FF" />
-                                <ButtonText className="ml-2 text-lg" style={{ color: "#4DA6FF" }}>
-                                    Voltar
-                                </ButtonText>
-                            </Button>
-                        )}
+            <ScrollView className="flex-1">
+                <Box className="py-6 items-center justify-center">
+                    <Card className="p-0 w-full bg-white" style={{ elevation: 3 }}>
+                        {renderStep()}
+                    </Card>
+                </Box>
+            </ScrollView>
 
-                        {currentStep < steps.length - 1 ? (
-                            <Button
-                                className="flex-1 h-14"
-                                variant="solid"
-                                onPress={handleNext}
-                                isDisabled={!canProceed}
-                                style={{ backgroundColor: canProceed ? "#4DA6FF" : "#ccc" }}
-                            >
-                                <ButtonText className="text-lg text-white">Próximo</ButtonText>
-                                <Ionicons name="arrow-forward" size={20} color="white" />
-                            </Button>
-                        ) : (
-                            <Button
-                                className="flex-1 h-14 bg-emerald-500"
-                                variant="solid"
-                                onPress={handleSubmit}
-                                isDisabled={isSubmitting}
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <ActivityIndicator size="small" color="white" />
-                                        <ButtonText className="ml-2 text-lg text-white">Salvando...</ButtonText>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Ionicons name="checkmark" size={20} color="white" />
-                                        <ButtonText className="ml-2 text-base text-white">Salvar Medicamento</ButtonText>
-                                    </>
-                                )}
-                            </Button>
-                        )}
-                    </HStack>
-                </View>
+            <View className="p-4 bg-white rounded-md" style={{ elevation: 3 }}>
+                <HStack space="md">
+                    {currentStep > 0 && (
+                        <Button
+                            className="flex-1 h-14 max-w-[130px]"
+                            variant="outline"
+                            onPress={handlePrevious}
+                            style={{ borderColor: "#4DA6FF" }}
+                        >
+                            <Ionicons name="arrow-back" size={20} color="#4DA6FF" />
+                            <ButtonText className="ml-2 text-lg" style={{ color: "#4DA6FF" }}>
+                                Voltar
+                            </ButtonText>
+                        </Button>
+                    )}
+
+                    {currentStep < steps.length - 1 ? (
+                        <Button
+                            className="flex-1 h-14"
+                            variant="solid"
+                            onPress={handleNext}
+                            isDisabled={!canProceed}
+                            style={{ backgroundColor: canProceed ? "#4DA6FF" : "#ccc" }}
+                        >
+                            <ButtonText className="text-lg text-white">Próximo</ButtonText>
+                            <Ionicons name="arrow-forward" size={20} color="white" />
+                        </Button>
+                    ) : (
+                        <Button
+                            className="flex-1 h-14 bg-emerald-500"
+                            variant="solid"
+                            onPress={handleSubmit}
+                            isDisabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <ActivityIndicator size="small" color="white" />
+                                    <ButtonText className="ml-2 text-lg text-white">Salvando...</ButtonText>
+                                </>
+                            ) : (
+                                <>
+                                    <Ionicons name="checkmark" size={20} color="white" />
+                                    <ButtonText className="ml-2 text-base text-white">Salvar Medicamento</ButtonText>
+                                </>
+                            )}
+                        </Button>
+                    )}
+                </HStack>
             </View>
+        </View>
     )
 }
