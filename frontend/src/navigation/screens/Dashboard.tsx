@@ -6,6 +6,7 @@ import { View, Text, ScrollView, Modal, Pressable, Platform, Image, ActivityIndi
 import { Ionicons } from "@expo/vector-icons"
 import * as Speech from "expo-speech"
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { TutorialOverlay, useResetTutorial } from "./dashboard/tutorial-overlay"
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000'
 
@@ -26,6 +27,10 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [takingMedicine, setTakingMedicine] = useState<string | null>(null)
+  const [showTutorial, setShowTutorial] = useState(false)
+
+  // Para testes/desenvolvimento - pode remover depois
+  const { resetTutorial } = useResetTutorial()
 
   const nextMedicine = medicines.find((m) => m.status === "pending" && m.nextIn >= 0) || medicines[0]
   const takenToday = medicines.filter(m => m.status === "taken").length
@@ -123,7 +128,7 @@ export default function DashboardScreen() {
 
     try {
       const token = await getStoredToken()
-      
+
       if (!token) {
         setError('Token não encontrado. Faça login novamente.')
         return
@@ -148,10 +153,10 @@ export default function DashboardScreen() {
 
       if (response.ok) {
         const data = await response.json()
-        
+
         // Atualiza o estado local
-        setMedicines((prev) => 
-          prev.map((med) => 
+        setMedicines((prev) =>
+          prev.map((med) =>
             med.id === medicineId ? { ...med, status: "taken" } : med
           )
         )
@@ -168,7 +173,7 @@ export default function DashboardScreen() {
         } else if ("speechSynthesis" in global) {
           const utterance = new (global as any).SpeechSynthesisUtterance(text)
           utterance.lang = "pt-BR"
-          ; (global as any).speechSynthesis.speak(utterance)
+            ; (global as any).speechSynthesis.speak(utterance)
         }
       } else {
         setError('Erro ao confirmar medicamento')
@@ -236,14 +241,15 @@ export default function DashboardScreen() {
 
   return (
     <View className="flex-1 bg-gradient-to-b from-blue-50 to-white space-y-6">
+      <TutorialOverlay onComplete={() => setShowTutorial(false)} />
       <View className="relative">
         <View className="pt-5 pb-2 px-4">
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center">
               <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center mr-3 overflow-hidden">
                 {user?.picture ? (
-                  <Image 
-                    source={{ uri: user.picture }} 
+                  <Image
+                    source={{ uri: user.picture }}
                     className="w-full h-full"
                     resizeMode="cover"
                   />
@@ -260,13 +266,18 @@ export default function DashboardScreen() {
                 </Text>
               </View>
             </View>
+            <View className="flex-row items-center">
+              <Pressable onPress={resetTutorial} className="w-10 h-10 bg-white/30 rounded-full items-center justify-center">
+                <Ionicons name="help-outline" size={20} color="#1e293b" />
+              </Pressable>
 
-            <Pressable
-              onPress={() => setShowSettings(true)}
-              className="w-10 h-10 bg-white/30 rounded-full items-center justify-center"
-            >
-              <Ionicons name="settings-outline" size={20} color="#1e293b" />
-            </Pressable>
+              <Pressable
+                onPress={() => setShowSettings(true)}
+                className="w-10 h-10 bg-white/30 rounded-full items-center justify-center"
+              >
+                <Ionicons name="settings-outline" size={20} color="#1e293b" />
+              </Pressable>
+            </View>
           </View>
 
           <View className="flex-row justify-between mt-2">

@@ -1,13 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
+model FamilyConnection {
+  id            String   @id @default(uuid())
+  requesterId   String   // Quem enviou o convite
+  requestedId   String   // Quem recebeu o convite
+  status        String   @default("pending") // pending, accepted, rejected
+  permissions   String   @default("view") // view, view_notifications, full
+  relationship  String?  // filho, filha, cuidador, etc
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  requester     User     @relation("FamilyRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  requested     User     @relation("FamilyRequested", fields: [requestedId], references: [id], onDelete: Cascade)
+  
+  @@unique([requesterId, requestedId])
+  @@map("family_connections")
+}
+
+// Atualize o model User para incluir as relações
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -16,12 +39,17 @@ model User {
   googleId      String   @unique
   streak        Int      @default(0)
   lastActiveDate DateTime?
+  age           Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
   medications   Medication[]
   reminders     Reminder[]
   medicationLogs MedicationLog[]
+  
+  // Relações de família
+  sentConnections     FamilyConnection[] @relation("FamilyRequester")
+  receivedConnections FamilyConnection[] @relation("FamilyRequested")
   
   @@map("users")
 }

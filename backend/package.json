@@ -8,7 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
-    "@prisma/client": "^6.17.1",
+    "@prisma/client": "^7.0.0",
+    "dotenv": "^17.2.3",
     "google-auth-library": "^10.4.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.5.4",
@@ -21,6 +22,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "prisma": "7.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
