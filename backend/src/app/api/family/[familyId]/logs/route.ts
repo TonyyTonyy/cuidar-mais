@@ -5,20 +5,21 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { familyId: string } }
+  { params }: { params: Promise<{ familyId: string }> }
 ) {
   try {
+    const { familyId } = await params;
     const userId = await getUserFromToken(req);
     if (!userId) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    console.log('User ID:', userId, 'Family ID:', familyId);
 
-    // Verificar conexão
     const connection = await prisma.familyConnection.findFirst({
       where: {
         OR: [
-          { requesterId: userId, requestedId: params.familyId, status: 'accepted' },
-          { requesterId: params.familyId, requestedId: userId, status: 'accepted' }
+          { requesterId: userId, requestedId: familyId, status: 'accepted' },
+          { requesterId: familyId, requestedId: userId, status: 'accepted' }
         ]
       }
     });
@@ -34,11 +35,12 @@ export async function GET(
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
+    console.log('startDate ISO:', startDate.toISOString(), 'status filter:', status);
 
     // Buscar logs
     const logs = await prisma.medicationLog.findMany({
       where: {
-        userId: params.familyId,
+        userId: familyId,
         takenAt: {
           gte: startDate
         },
@@ -58,6 +60,7 @@ export async function GET(
         takenAt: 'desc'
       }
     });
+    console.log('logs length:', logs.length);
 
     return NextResponse.json(logs);
   } catch (error) {

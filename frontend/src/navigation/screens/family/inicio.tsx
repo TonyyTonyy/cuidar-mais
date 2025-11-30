@@ -124,9 +124,15 @@ export default function Inicio({
             onValueChange={setSelectedProfile}
           >
             <SelectTrigger variant="outline" size="md">
-              <SelectInput placeholder="Selecione um perfil" />
-              <SelectIcon className="mr-3">
-                <Ionicons name="chevron-down" size={20} />
+              <SelectInput placeholder="Selecione um perfil"
+  value={
+    selectedProfile
+      ? profiles[selectedProfile]?.name +
+        (profiles[selectedProfile]?.age ? ` (${profiles[selectedProfile]?.age} anos)` : '')
+      : undefined
+  }/>
+              <SelectIcon className="mr-3 text-gray-700">
+                <Ionicons name="chevron-down" size={20} className="" />
               </SelectIcon>
             </SelectTrigger>
             <SelectPortal>

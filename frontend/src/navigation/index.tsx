@@ -79,11 +79,7 @@ const RootStack = createNativeStackNavigator({
       screen: Settings,
       options: ({ navigation }) => ({
         presentation: "modal",
-        headerRight: () => (
-          <HeaderButton onPress={navigation.goBack}>
-            <Text>Close</Text>
-          </HeaderButton>
-        ),
+        title: "Configurações",
       }),
     },
     NotFound: {

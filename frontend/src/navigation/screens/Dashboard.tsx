@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Medicine } from "@/src/types/medicine"
 import React, { useState, useEffect } from "react"
-import { View, Text, ScrollView, Modal, Pressable, Platform, Image, ActivityIndicator } from "react-native"
+import { View, Text, ScrollView, Pressable, Platform, Image, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import * as Speech from "expo-speech"
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { TutorialOverlay, useResetTutorial } from "./dashboard/tutorial-overlay"
+import { useNavigation } from "@react-navigation/native"
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000'
 
@@ -20,9 +21,9 @@ interface User {
 }
 
 export default function DashboardScreen() {
+  const navigation = useNavigation()
   const [medicines, setMedicines] = useState<Medicine[]>([])
   const [user, setUser] = useState<User | null>(null)
-  const [showSettings, setShowSettings] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -267,12 +268,15 @@ export default function DashboardScreen() {
               </View>
             </View>
             <View className="flex-row items-center">
-              <Pressable onPress={resetTutorial} className="w-10 h-10 bg-white/30 rounded-full items-center justify-center">
+              <Pressable 
+                onPress={resetTutorial} 
+                className="w-10 h-10 bg-white/30 rounded-full items-center justify-center mr-2"
+              >
                 <Ionicons name="help-outline" size={20} color="#1e293b" />
               </Pressable>
 
               <Pressable
-                onPress={() => setShowSettings(true)}
+                onPress={() => navigation.navigate('Settings')}
                 className="w-10 h-10 bg-white/30 rounded-full items-center justify-center"
               >
                 <Ionicons name="settings-outline" size={20} color="#1e293b" />
@@ -296,51 +300,6 @@ export default function DashboardScreen() {
           </View>
         </View>
       </View>
-
-      <Modal visible={showSettings} animationType="slide" transparent>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 min-h-96">
-            <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-6"></View>
-
-            <Text className="text-2xl font-bold mb-6 text-gray-900">Configurações</Text>
-
-            <View className="space-y-6">
-              <View className="bg-gray-50 rounded-2xl p-4">
-                <Text className="text-base font-semibold mb-3">Aparência</Text>
-                <View className="flex-row justify-between items-center mb-3">
-                  <Text className="text-gray-700">Tamanho da fonte</Text>
-                  <View className="bg-blue-100 rounded-lg px-3 py-2">
-                    <Text className="text-blue-600 font-medium">Normal</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View className="bg-gray-50 rounded-2xl p-4">
-                <Text className="text-base font-semibold mb-3">Notificações</Text>
-                <View className="flex-row justify-between items-center mb-3">
-                  <Text className="text-gray-700">Som</Text>
-                  <View className="w-12 h-6 bg-green-500 rounded-full items-end justify-center p-1">
-                    <View className="w-4 h-4 bg-white rounded-full"></View>
-                  </View>
-                </View>
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-gray-700">Leitura por voz</Text>
-                  <View className="w-12 h-6 bg-gray-300 rounded-full justify-center p-1">
-                    <View className="w-4 h-4 bg-white rounded-full"></View>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            <Button
-              onPress={() => setShowSettings(false)}
-              className="bg-blue-600 mt-8 p-0 rounded-2xl"
-            >
-              <Text className="text-white text-center font-bold text-lg py-3">Fechar</Text>
-            </Button>
-          </View>
-        </View>
-      </Modal>
 
       <ScrollView
         className="flex-1 p-4"

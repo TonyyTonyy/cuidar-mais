@@ -30,7 +30,6 @@ model FamilyConnection {
   @@map("family_connections")
 }
 
-// Atualize o model User para incluir as relações
 model User {
   id            String   @id @default(uuid())
   email         String   @unique

@@ -4,9 +4,10 @@ import { prisma } from '@/lib/prisma';
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const userId = getUserFromToken(req);
         if (!userId) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -14,7 +15,7 @@ export async function DELETE(
 
         await prisma.familyConnection.delete({
             where: {
-                id: params.id
+                id: id
             }
         });
 

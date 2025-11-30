@@ -182,7 +182,7 @@ const FamilyScreen = () => {
                     onPress: async () => {
                         try {
                             const token = await AsyncStorage.getItem('authToken');
-                            const response = await fetch(`${API_URL}/api/family/${id}`, {
+                            const response = await fetch(`${API_URL}/api/family/member/${id}`, {
                                 method: 'DELETE',
                                 headers: {
                                     'Authorization': `Bearer ${token}`

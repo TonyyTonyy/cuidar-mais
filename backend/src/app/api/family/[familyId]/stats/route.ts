@@ -4,9 +4,10 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { familyId: string } }
+  { params }: { params: Promise<{ familyId: string }> }
 ) {
   try {
+    const { familyId } = await params;
     const userId = await getUserFromToken(req);
     if (!userId) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -16,8 +17,8 @@ export async function GET(
     const connection = await prisma.familyConnection.findFirst({
       where: {
         OR: [
-          { requesterId: userId, requestedId: params.familyId, status: 'accepted' },
-          { requesterId: params.familyId, requestedId: userId, status: 'accepted' }
+          { requesterId: userId, requestedId: familyId, status: 'accepted' },
+          { requesterId: familyId, requestedId: userId, status: 'accepted' }
         ]
       }
     });
@@ -35,7 +36,7 @@ export async function GET(
     // Buscar estatísticas
     const logs = await prisma.medicationLog.findMany({
       where: {
-        userId: params.familyId,
+        userId: familyId,
         takenAt: {
           gte: startDate
         }

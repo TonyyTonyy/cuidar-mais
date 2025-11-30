@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromToken } from '@/lib/getUserFromToken';
 import { prisma } from '@/lib/prisma';
 
-// GET - Buscar medicamentos de um familiar
 export async function GET(
   req: NextRequest,
-  { params }: { params: { familyId: string } }
+  { params }: { params: Promise<{ familyId: string }> }
 ) {
   try {
+    const { familyId } = await params;
     const userId = getUserFromToken(req);
     if (!userId) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -17,8 +17,8 @@ export async function GET(
     const connection = await prisma.familyConnection.findFirst({
       where: {
         OR: [
-          { requesterId: userId, requestedId: params.familyId, status: 'accepted' },
-          { requesterId: params.familyId, requestedId: userId, status: 'accepted' }
+          { requesterId: userId, requestedId: familyId, status: 'accepted' },
+          { requesterId: familyId, requestedId: userId, status: 'accepted' }
         ]
       }
     });
@@ -30,7 +30,7 @@ export async function GET(
     // Buscar medicamentos do familiar
     const medications = await prisma.medication.findMany({
       where: {
-        userId: params.familyId,
+        userId: familyId,
         active: true
       },
       include: {

@@ -1,23 +1,86 @@
-import { Text } from '@react-navigation/elements';
-import { StyleSheet, View } from 'react-native';
+import React, { useState } from "react"
+import { View, Text, ScrollView, Pressable } from "react-native"
+import { Ionicons } from "@expo/vector-icons"
+import { useNavigation } from "@react-navigation/native"
 
 export function Settings() {
+  const navigation = useNavigation()
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const [voiceEnabled, setVoiceEnabled] = useState(false)
+
   return (
-    <View style={styles.container}>
-      <Text>Settings Screen</Text>
+    <View className="flex-1 bg-blue-50">
+
+      <ScrollView className="flex-1 p-6">
+        {/* Aparência */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-lg font-bold mb-4 text-gray-900">Aparência</Text>
+          
+          <View className="flex-row justify-between items-center py-3">
+            <Text className="text-gray-700 text-base">Tamanho da fonte</Text>
+            <View className="bg-blue-100 rounded-lg px-4 py-2">
+              <Text className="text-blue-600 font-medium">Normal</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Notificações */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-lg font-bold mb-4 text-gray-900">Notificações</Text>
+          
+          <View className="flex-row justify-between items-center py-3 border-b border-gray-100">
+            <Text className="text-gray-700 text-base">Som</Text>
+            <Pressable 
+              onPress={() => setSoundEnabled(!soundEnabled)}
+              className={`w-14 h-7 rounded-full p-1 ${soundEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+              style={{ justifyContent: 'center', alignItems: soundEnabled ? 'flex-end' : 'flex-start' }}
+            >
+              <View className="w-5 h-5 bg-white rounded-full shadow" />
+            </Pressable>
+          </View>
+
+          <View className="flex-row justify-between items-center py-3">
+            <Text className="text-gray-700 text-base">Leitura por voz</Text>
+            <Pressable 
+              onPress={() => setVoiceEnabled(!voiceEnabled)}
+              className={`w-14 h-7 rounded-full p-1 ${voiceEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+              style={{ justifyContent: 'center', alignItems: voiceEnabled ? 'flex-end' : 'flex-start' }}
+            >
+              <View className="w-5 h-5 bg-white rounded-full shadow" />
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Sobre */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-lg font-bold mb-4 text-gray-900">Sobre</Text>
+          
+          <View className="py-3 border-b border-gray-100">
+            <Text className="text-gray-700 text-base mb-1">Versão do aplicativo</Text>
+            <Text className="text-gray-500 text-sm">1.0.0</Text>
+          </View>
+
+          <Pressable className="py-3 border-b border-gray-100">
+            <Text className="text-gray-700 text-base">Termos de uso</Text>
+          </Pressable>
+
+          <Pressable className="py-3">
+            <Text className="text-gray-700 text-base">Política de privacidade</Text>
+          </Pressable>
+        </View>
+
+        {/* Conta */}
+        <View className="bg-white rounded-2xl p-5 shadow-sm">
+          <Text className="text-lg font-bold mb-4 text-gray-900">Conta</Text>
+          
+          <Pressable className="py-3 border-b border-gray-100">
+            <Text className="text-red-600 text-base font-medium">Sair da conta</Text>
+          </Pressable>
+
+        </View>
+      </ScrollView>
     </View>
-  );
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-});
+export default Settings
