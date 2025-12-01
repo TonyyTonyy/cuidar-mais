@@ -34,7 +34,7 @@ export default function LoginScreen() {
     const attemptAutoLogin = async () => {
       try {
         const token = await AsyncStorage.getItem('authToken')
-        
+
         if (token) {
           const response = await fetch(`${API_URL}/api/user/me`, {
             headers: {
@@ -69,14 +69,14 @@ export default function LoginScreen() {
     if (response?.type === 'success') {
       console.log('Resposta completa do Google:', response)
       const { authentication, params } = response
-      
+
       // Tenta obter o idToken de diferentes lugares
       const idToken = authentication?.idToken || params?.id_token
       const accessToken = authentication?.accessToken || params?.access_token
-      
+
       console.log('idToken:', idToken)
       console.log('accessToken:', accessToken)
-      
+
       if (idToken) {
         handleGoogleLoginWithToken(idToken)
       } else if (accessToken) {
@@ -148,9 +148,9 @@ export default function LoginScreen() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           accessToken,
-          userInfo 
+          userInfo
         }),
       })
 
@@ -174,9 +174,13 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     try {
       setError('')
+      console.log('Redirect URI:', makeRedirectUri({
+        scheme: 'cuidarmais',
+        path: 'redirect'
+      }))
       console.log('Iniciando login com Google...')
       await promptAsync({
-        showInRecents: true 
+        showInRecents: true
       })
     } catch (err) {
       console.error('Erro ao iniciar login Google:', err)

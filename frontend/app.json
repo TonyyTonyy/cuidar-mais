@@ -10,14 +10,14 @@
     "scheme": "cuidarmais",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cuidarmais"
+      "bundleIdentifier": "com.tonycleriston.cuidarmais"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.cuidarmais"
+      "package": "com.tonycleriston.cuidarmais"
     },
     "web": {
       "favicon": "./assets/favicon.png"

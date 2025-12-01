@@ -8,6 +8,8 @@ import * as Speech from "expo-speech"
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { TutorialOverlay, useResetTutorial } from "./dashboard/tutorial-overlay"
 import { useNavigation } from "@react-navigation/native"
+import { EditMedicineModal } from "./dashboard/edit-medicine-modal"
+import { getStoredToken } from "@/src/lib/get-stored-token"
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000'
 
@@ -29,8 +31,9 @@ export default function DashboardScreen() {
   const [error, setError] = useState<string | null>(null)
   const [takingMedicine, setTakingMedicine] = useState<string | null>(null)
   const [showTutorial, setShowTutorial] = useState(false)
+  const [editingMedicationId, setEditingMedicationId] = useState<string | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
 
-  // Para testes/desenvolvimento - pode remover depois
   const { resetTutorial } = useResetTutorial()
 
   const nextMedicine = medicines.find((m) => m.status === "pending" && m.nextIn >= 0) || medicines[0]
@@ -43,85 +46,68 @@ export default function DashboardScreen() {
     return () => clearInterval(timer)
   }, [])
 
-  const getStoredToken = async () => {
+
+
+  const fetchData = async () => {
+    setLoading(true)
+    setError(null)
+
     try {
-      const keysToTry = ['token', 'authToken', 'accessToken']
-      for (const key of keysToTry) {
-        const t = await AsyncStorage.getItem(key)
-        if (t) return t
+      const token = await getStoredToken()
+
+      if (!token) {
+        setError('Token não encontrado. Faça login novamente.')
+        setLoading(false)
+        return
       }
-      return null
-    } catch (e) {
-      return null
+
+      // Busca dados do usuário
+      const userRes = await fetch(`${API_URL}/api/user/me`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+
+      if (userRes.ok) {
+        const body = await userRes.json()
+        const remoteUser: User = body?.user ?? body?.data ?? body
+
+        if (remoteUser) {
+          setUser(remoteUser)
+          await AsyncStorage.setItem('userData', JSON.stringify(remoteUser))
+        }
+      } else {
+        console.warn('Falha ao buscar /api/user/me', await userRes.text())
+        setError('Erro ao carregar dados do usuário')
+      }
+
+      // Busca medicamentos de hoje
+      const medsRes = await fetch(`${API_URL}/api/medicines/today`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+
+      if (medsRes.ok) {
+        const medsBody = await medsRes.json()
+        const remoteMeds: Medicine[] = medsBody?.medicines ?? medsBody?.data ?? medsBody
+        if (Array.isArray(remoteMeds)) {
+          setMedicines(remoteMeds)
+        }
+      } else {
+        console.warn('/api/medicines/today não disponível:', medsRes.status)
+        if (medicines.length === 0) {
+          setError('Nenhum medicamento cadastrado')
+        }
+      }
+
+    } catch (err) {
+      console.error('Erro ao buscar dados:', err)
+      setError('Erro ao conectar com o servidor')
+    } finally {
+      setLoading(false)
     }
   }
 
   useEffect(() => {
-    let mounted = true
-
-    const fetchData = async () => {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const token = await getStoredToken()
-
-        if (!token) {
-          if (mounted) {
-            setError('Token não encontrado. Faça login novamente.')
-            setLoading(false)
-          }
-          return
-        }
-
-        // Busca dados do usuário
-        const userRes = await fetch(`${API_URL}/api/user/me`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}` },
-        })
-
-        if (userRes.ok) {
-          const body = await userRes.json()
-          const remoteUser: User = body?.user ?? body?.data ?? body
-
-          if (mounted && remoteUser) {
-            setUser(remoteUser)
-            await AsyncStorage.setItem('userData', JSON.stringify(remoteUser))
-          }
-        } else {
-          console.warn('Falha ao buscar /api/user/me', await userRes.text())
-          if (mounted) setError('Erro ao carregar dados do usuário')
-        }
-
-        // Busca medicamentos de hoje
-        const medsRes = await fetch(`${API_URL}/api/medicines/today`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        })
-
-        if (medsRes.ok) {
-          const medsBody = await medsRes.json()
-          const remoteMeds: Medicine[] = medsBody?.medicines ?? medsBody?.data ?? medsBody
-          if (mounted && Array.isArray(remoteMeds)) {
-            setMedicines(remoteMeds)
-          }
-        } else {
-          console.warn('/api/medicines/today não disponível:', medsRes.status)
-          if (mounted && medicines.length === 0) {
-            setError('Nenhum medicamento cadastrado')
-          }
-        }
-
-      } catch (err) {
-        console.error('Erro ao buscar dados:', err)
-        if (mounted) setError('Erro ao conectar com o servidor')
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-
     fetchData()
-
-    return () => { mounted = false }
   }, [])
 
   const handleTakeMedicine = async (medicineId: string) => {
@@ -135,11 +121,9 @@ export default function DashboardScreen() {
         return
       }
 
-      // Encontra o medicamento
       const medicine = medicines.find(m => m.id === medicineId)
       if (!medicine) return
 
-      // Registra no backend
       const response = await fetch(`${API_URL}/api/medicines/take`, {
         method: 'POST',
         headers: {
@@ -155,19 +139,16 @@ export default function DashboardScreen() {
       if (response.ok) {
         const data = await response.json()
 
-        // Atualiza o estado local
         setMedicines((prev) =>
           prev.map((med) =>
             med.id === medicineId ? { ...med, status: "taken" } : med
           )
         )
 
-        // Atualiza o streak do usuário
         if (data.streak && user) {
           setUser({ ...user, streak: data.streak })
         }
 
-        // Feedback de voz
         const text = "Parabéns! Medicamento confirmado com sucesso!"
         if (Platform.OS !== "web") {
           Speech.speak(text, { language: "pt-BR" })
@@ -185,6 +166,21 @@ export default function DashboardScreen() {
     } finally {
       setTakingMedicine(null)
     }
+  }
+
+  const handleEditMedicine = (medicationId: string) => {
+    setEditingMedicationId(medicationId)
+    setShowEditModal(true)
+  }
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false)
+    setEditingMedicationId(null)
+  }
+
+  const handleUpdateComplete = () => {
+    // Recarrega os dados após atualização
+    fetchData()
   }
 
   const formatTimeUntil = (minutes: number) => {
@@ -214,7 +210,6 @@ export default function DashboardScreen() {
     return "Boa noite"
   }
 
-  // Tela de carregamento
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-blue-50">
@@ -224,14 +219,13 @@ export default function DashboardScreen() {
     )
   }
 
-  // Tela de erro
   if (error && !user) {
     return (
       <View className="flex-1 items-center justify-center bg-blue-50 px-6">
         <Ionicons name="alert-circle" size={64} color="#EF4444" />
         <Text className="text-gray-900 text-xl font-bold mt-4 text-center">{error}</Text>
         <Button
-          onPress={() => window.location.reload()}
+          onPress={() => fetchData()}
           className="bg-blue-500 mt-6 px-6 py-3 rounded-2xl"
         >
           <Text className="text-white font-bold">Tentar novamente</Text>
@@ -241,8 +235,10 @@ export default function DashboardScreen() {
   }
 
   return (
-    <View className="flex-1 bg-gradient-to-b from-blue-50 to-white space-y-6">
+    <View className="flex-1 bg-gradient-to-b from-blue-50 to-white">
       <TutorialOverlay onComplete={() => setShowTutorial(false)} />
+
+      {/* Header */}
       <View className="relative">
         <View className="pt-5 pb-2 px-4">
           <View className="flex-row items-center justify-between mb-2">
@@ -268,8 +264,8 @@ export default function DashboardScreen() {
               </View>
             </View>
             <View className="flex-row items-center">
-              <Pressable 
-                onPress={resetTutorial} 
+              <Pressable
+                onPress={resetTutorial}
                 className="w-10 h-10 bg-white/30 rounded-full items-center justify-center mr-2"
               >
                 <Ionicons name="help-outline" size={20} color="#1e293b" />
@@ -284,6 +280,7 @@ export default function DashboardScreen() {
             </View>
           </View>
 
+          {/* Stats Cards */}
           <View className="flex-row justify-between mt-2">
             <View className="bg-white/60 backdrop-blur-lg rounded-2xl p-3 flex-1 mr-2 shadow-sm">
               <Text className="text-slate-600 text-xs">Sequência</Text>
@@ -306,6 +303,7 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Next Medicine Card */}
         {nextMedicine && (
           <Card className="bg-white rounded-3xl p-6 mb-6 shadow-xl border-0" style={{ elevation: 4 }}>
             <View className="items-center">
@@ -336,7 +334,7 @@ export default function DashboardScreen() {
                 <Button
                   onPress={() => handleTakeMedicine(nextMedicine.id)}
                   disabled={takingMedicine === nextMedicine.id}
-                  className="bg-emerald-500 h-12 p-0 rounded-2xl shadow-lg"
+                  className="bg-emerald-500 h-12 p-0 rounded-2xl shadow-lg data-[hover=true]:bg-emerald-600"
                 >
                   {takingMedicine === nextMedicine.id ? (
                     <ActivityIndicator color="white" />
@@ -352,6 +350,7 @@ export default function DashboardScreen() {
           </Card>
         )}
 
+        {/* Medicine List */}
         <View>
           <Text className="text-xl font-bold text-gray-900 mb-4">Medicamentos de Hoje</Text>
 
@@ -409,6 +408,16 @@ export default function DashboardScreen() {
                             medicine.status === "overdue" ? "Atrasado ⏰" : "Pendente 📝"}
                         </Text>
                       </View>
+
+                      <Pressable
+                        onPress={() => handleEditMedicine(medicine.medicationId)}
+                        className="mt-2 px-3 py-1 bg-blue-50 rounded-full"
+                      >
+                        <View className="flex-row items-center">
+                          <Ionicons name="pencil" size={12} color="#3B82F6" />
+                          <Text className="text-blue-500 text-xs font-medium ml-1">Editar</Text>
+                        </View>
+                      </Pressable>
                     </View>
                   </View>
                 </Card>
@@ -424,8 +433,16 @@ export default function DashboardScreen() {
             </View>
           </View>
         )}
-
       </ScrollView>
+
+      {/* Edit Modal */}
+      <EditMedicineModal
+        visible={showEditModal}
+        medicationId={editingMedicationId}
+        onClose={handleCloseEditModal}
+        onUpdate={handleUpdateComplete}
+        onDelete={handleUpdateComplete}
+      />
     </View>
   )
 }

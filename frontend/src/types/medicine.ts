@@ -1,7 +1,7 @@
 export type Medicine = {
   id: string
-   medicationId?: string
-     reminderId?: string
+  medicationId: string
+  reminderId?: string
   name: string
   dosage: string
   time: string
