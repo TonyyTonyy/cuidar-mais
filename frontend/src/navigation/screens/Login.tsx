@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, ActivityIndicator, Alert, Image, Platform } from 'react-native'
+import { View, Text, ActivityIndicator, Alert, Image, Platform, Pressable } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,10 @@ export default function LoginScreen() {
     scopes: ['profile', 'email'],
     responseType: 'id_token',
   })
+
+  const handleJumpManualLogin = () => {
+    navigation.navigate('Home')
+  }
 
   useEffect(() => {
     const attemptAutoLogin = async () => {
@@ -235,6 +239,12 @@ export default function LoginScreen() {
               Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade. Seus dados de
               saúde são protegidos e nunca compartilhados.
             </Text>
+            <Pressable
+              onPress={handleJumpManualLogin}
+              className="w-full h-10 bg-white/30 rounded-full items-center justify-center mr-2"
+            >
+              <Ionicons name="help-outline" size={20} color="#1e293b" />
+            </Pressable>
           </View>
         )}
       </View>
